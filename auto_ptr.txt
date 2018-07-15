@@ -1,0 +1,54 @@
+//管理权转移的auto_ptr
+//当发生赋值运算符的重载或拷贝构造时，防止将一块空间析构两次，将旧指针设置为NULL
+template<class T>
+class Auto_ptr
+{
+public:
+	Auto_ptr(T* ptr)
+		:_ptr(ptr)
+	{}
+	T& operator*()
+	{
+		return *_ptr;
+	}
+	T* operator->()
+	{
+		return _ptr;
+	}
+	Auto_ptr(Auto_ptr<T>& ap)
+		:_ptr(ap._ptr)
+	{
+		ap._ptr = NULL;
+	}
+	Auto_ptr<T>& operator=(Auto_ptr<T>& ap)
+	{
+		if (_ptr != ap._ptr)
+		{
+			delete _ptr;
+			_ptr = ap._ptr;
+			ap._ptr = NULL;
+		}
+		return *this;
+	}
+	~Auto_ptr()
+	{
+		if (_ptr)
+		{
+			cout << "delete _ptr" << endl;
+			delete _ptr;
+		}
+	}
+private:
+	T* _ptr;
+};
+int main()
+{
+	Auto_ptr<int> ap1(new int);
+	*ap1 = 110;
+	Auto_ptr<int> ap2(ap1);
+	Auto_ptr<int> ap3(ap2);
+	*ap3 = 120;
+	ap2 = ap3;
+	cout << *ap2 << endl;
+	system("pause");
+}

@@ -1,0 +1,54 @@
+//引用计数版本的shared_ptr
+//当一块空间的引用计数为0的时候就将其释放
+//引用计数版本的shared_ptr存在循环引用的问题，引入weak_ptr辅助shared_ptr来解决循环引用的问题
+//weak_ptr只是对管理对象提供了一个手段，不修改引用计数，只需要把循环引用的一方使用弱引用
+template<class T>
+class Shared_ptr
+{
+public:
+	Shared_ptr(T* ptr = NULL)
+		:_ptr(ptr)
+		, _refcount(new int(1))
+	{}
+	Shared_ptr(Shared_ptr<T>& sp)
+		:_ptr(sp._ptr)
+		, _refcount(sp._refcount)
+	{
+		++(*_refcount);
+	}
+	Shared_ptr<T>& operator=(Shared_ptr<T>& sp)
+	{
+		if (_ptr != sp._ptr)
+		{
+			if (--(*_refcount) == 0)
+			{
+				delete _ptr;
+				delete _refcount;
+			}
+			_ptr = sp._ptr;
+			_refcount = sp._refcount;
+			++(*_refcount);
+		}
+		return *this;
+	}
+	~Shared_ptr()
+	{
+		if (--(*_refcount) == 0)
+		{
+			delete _ptr;
+			delete _refcount;
+		}
+	}
+	T& operator*()
+	{
+		return *_ptr;
+	}
+	T* operator->()
+	{
+		return _ptr;
+	}
+private:
+	T* _ptr;
+	int* _refcount;
+};
+

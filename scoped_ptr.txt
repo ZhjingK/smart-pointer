@@ -1,0 +1,31 @@
+//防拷贝的守卫指针scoped_ptr
+//将构造函数和赋值运算符重载函数只声明不实现，并设置为private
+template<class T>
+class Scoped_ptr
+{
+public:
+	Scoped_ptr(T* ptr)
+		:_ptr(ptr)
+	{}
+	T* operator->()
+	{
+		return _ptr;
+	}
+	T& operator*()
+	{
+		return *_ptr;
+	}
+	~Scoped_ptr()
+	{
+		cout << "delete _ptr" << endl;
+		if (_ptr)
+		{
+			delete _ptr;
+		}
+	}
+private:
+	Scoped_ptr(Scoped_ptr<T>& sp);
+	Scoped_ptr<T>& operator=(Scoped_ptr<T>& sp);
+private:
+	T* _ptr;
+};

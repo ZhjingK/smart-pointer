@@ -1,0 +1,66 @@
+//定制删除器
+#include<iostream>
+#include<memory>
+using namespace std;
+
+//定制计时器的仿函数
+template<class T>
+struct Del
+{
+	void operator()(const T* ptr)
+	{
+		delete ptr;
+		cout << "delete ptr" << endl;
+	}
+};
+
+struct Free
+{
+	void operator()(void* ptr)
+	{
+		free(ptr);
+		cout << "free ptr" << endl;
+	}
+};
+
+struct Fclose
+{
+	void operator()(void* ptr)
+	{
+		fclose((FILE*)ptr);
+		cout << "fclose ptr" << endl;
+	}
+};
+template<class T,class deleter>
+class Shared_Delptr
+{
+public:
+	Shared_Delptr(T* ptr, deleter del)
+		:_ptr(ptr)
+		, _refcount(new int(1))
+		, _del(del)
+	{}
+	Shared_Delptr(T* ptr)
+	{
+		_ptr = ptr;
+		_refcount = new int(1);
+	}
+	~Shared_Delptr()
+	{
+		if (--(*_refcount) == 0)
+		{
+			_del(_ptr);
+			delete _refcount;
+		}
+	}
+private:
+	T* _ptr;
+	int* _refcount;
+	deleter _del;
+};
+int main()
+{
+	Shared_Delptr<int,Del<int>> sd(new int(1),Del<int>());
+	Shared_Delptr<int, Free> sd1((int*)malloc(sizeof(int)), Free());
+	
+}
